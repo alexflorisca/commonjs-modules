@@ -184,7 +184,7 @@ var core = {
      * @returns {Array}
      */
     selectAll: function(selector) {
-        return this._nodeListToArray(document.querySelectorAll(selector));
+        return [].slice.call(document.querySelectorAll(selector));
     },
 
 

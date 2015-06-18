@@ -1,0 +1,39 @@
+<form class="Form Form--register" data-validate-form="true" action="#" method="post" name="registerform" novalidate="">
+    <div class="Form_group">
+        <div class="Form_field Form_field--split">
+            <label for="firstName">First Name</label>
+            <input id="firstName" type="text" name="firstName" value="" required="required">
+        </div>
+        <div class="Form_field Form_field--split">
+            <label for="lastName">Last Name</label>
+            <input id="lastName" type="text" name="lastName" value="" required="required">
+        </div>
+    </div>
+    <div class="Form_field">
+        <label for="email">Email</label>
+        <input id="email" type="email" name="email" placeholder="example@example.com" value="" required="required">
+    </div>
+    <div class="Form_field">
+        <label for="password">Password</label>
+        <input id="password" type="password" name="password" required="required">
+    </div>
+    <div class="Form_field">
+        <label for="passwordConfirm">Confirm Password</label>
+        <input id="passwordConfirm" type="password" name="passwordConfirm" required="required" data-validate="match:password">
+    </div>
+    <button class="Btn Btn--primary Btn--s" id="submitButton" title="" name="submitButton" type="submit">Register</button>
+</form>
+
+<form id="testValidateInputForm">
+    <input type="text" id="customValidator1" data-validate="validator1">
+    <input type="text" id="customValidator2" data-validate="validator1:arg1">
+    <input type="text" id="customValidator3" data-validate="validator1:arg1 arg2">
+    <input type="text" id="customValidator4" data-validate="validator1:arg1 arg2,validator2,validator3:arg1">
+
+    <!-- Inputs to test individual validation -->
+    <input type="text" name="validateRequired" id="validateRequired" required="required" value="">
+    <input type="text" name="validateMaxLength" id="validateMaxLength" maxlength="2" value="abcdasdasd">
+    <input type="text" name="validateMinLength" id="validateMinLength" minlength="10" value="ab">
+    <input type="password" name="validatePassword" id="validatePassword" value="a">
+    <input type="email" name="validateEmail" id="validateEmail" value="fakeemail@">
+</form>

@@ -10,50 +10,28 @@ var core =  require('./core');
 
 var analytics = {
 
-    _getElementDataProperties: function(el) {
-        return {
-                category: el.getAttribute('data-event-category'),
-                action: el.getAttribute('data-event-action'),
-                label: el.getAttribute('data-event-label'),
-                value: el.getAttribute('data-event-value')
-            }
-    },
-
     /**
      * Initialise the google analytics
+     *
      * @param options
      * @param _gaq
      * @returns {boolean}
      */
     init: function(options, _gaq) {
-        if (!_gaq)
-        {
-            return false;
-        }
+        if (!_gaq || !options || !options.googleAnalyticsCode) return false;
 
         var sampleRate = 20;
+
         _gaq.push(
-            // Global GA code is for monitoring at application level, rather than journal/publisher level
-            ['global._setAccount', options.appGoogleAnalyticsCode],
-            ['global._gat._anonymizeIp'],
-            ['global._trackPageview'],
-            ['global._setAllowLinker', true],
-            ['global._setDomainName', 'none'],
-            ['global._setSiteSpeedSampleRate', sampleRate],
-            ['global._trackPageview']
+            ['_setAccount', options.googleAnalyticsCode],
+            ['_gat._anonymizeIp'],
+            ['_trackPageview'],
+            ['_setAllowLinker', true],
+            ['_setDomainName', 'none'],
+            ['_setSiteSpeedSampleRate', sampleRate],
+            ['_trackPageview']
         );
 
-        if(options.googleAnalyticsCode) {
-            _gaq.push(
-                ['_setAccount', options.googleAnalyticsCode],
-                ['_gat._anonymizeIp'],
-                ['_trackPageview'],
-                ['_setAllowLinker', true],
-                ['_setDomainName', 'none'],
-                ['_setSiteSpeedSampleRate', sampleRate],
-                ['_trackPageview']
-            );
-        }
 
         var ga = document.createElement('script');
         ga.type = 'text/javascript';
@@ -65,7 +43,7 @@ var analytics = {
 
 
     /**
-     * Bind data- attributes in html. The following are used:
+     * Bind data- attributes in html to track events. The following are used:
      *
      * data-track-event
      * data-event-category
@@ -74,21 +52,22 @@ var analytics = {
      * data-event-value
      */
     bindUIActions: function() {
-
         var _this = this;
 
+        // Bing click events
         core.on(core.selectAll('[data-track-event="click"]'), 'click', function() {
             var data = _this._getElementDataProperties(this);
             _this.trackEvent(data.category, data.action, data.label, data.value);
         });
 
-
+        // Bind submit events
         core.on(core.selectAll('[data-track-event="submit"]'), 'submit', function() {
             var data = _this._getElementDataProperties(this);
             _this.trackEvent(data.category, data.action, data.label, data.value);
         });
 
     },
+
 
     /**
      *
@@ -112,6 +91,16 @@ var analytics = {
 
         _gaq.push(['_trackEvent', category, action, label, parseInt(value)]);
         return true;
+    },
+
+
+    _getElementDataProperties: function(el) {
+        return {
+            category: el.getAttribute('data-event-category'),
+            action: el.getAttribute('data-event-action'),
+            label: el.getAttribute('data-event-label'),
+            value: el.getAttribute('data-event-value')
+        }
     }
 
 };

@@ -9,7 +9,7 @@
 var ajax = {
 
     /**
-     * URI Encode every key => value item in an array as a query parameter
+     * URI Encode every key => value pair in an array as a query parameter
      *
      * @param {Array} data
      * @returns {Array}
