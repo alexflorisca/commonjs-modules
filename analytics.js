@@ -26,15 +26,34 @@ var analytics = {
      * @returns {boolean}
      */
     init: function(options, _gaq) {
-        if(!options.googleAnalyticsCode || !_gaq) {
+        if (!_gaq)
+        {
             return false;
         }
 
-        _gaq.push(['_setAccount', options.googleAnalyticsCode]);
-        _gaq.push(['_gat._anonymizeIp']);
-        _gaq.push(['_trackPageview']);
-        _gaq.push(['_setAllowLinker', true]);
-        _gaq.push(['_setDomainName', 'none']);
+        var sampleRate = 20;
+        _gaq.push(
+            // Global GA code is for monitoring at application level, rather than journal/publisher level
+            ['global._setAccount', options.appGoogleAnalyticsCode],
+            ['global._gat._anonymizeIp'],
+            ['global._trackPageview'],
+            ['global._setAllowLinker', true],
+            ['global._setDomainName', 'none'],
+            ['global._setSiteSpeedSampleRate', sampleRate],
+            ['global._trackPageview']
+        );
+
+        if(options.googleAnalyticsCode) {
+            _gaq.push(
+                ['_setAccount', options.googleAnalyticsCode],
+                ['_gat._anonymizeIp'],
+                ['_trackPageview'],
+                ['_setAllowLinker', true],
+                ['_setDomainName', 'none'],
+                ['_setSiteSpeedSampleRate', sampleRate],
+                ['_trackPageview']
+            );
+        }
 
         var ga = document.createElement('script');
         ga.type = 'text/javascript';

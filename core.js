@@ -31,6 +31,7 @@ var core = {
      * @private
      */
     _addEventListener: function(el, eventType, cb) {
+        if(!el || !eventType || typeof cb !== 'function') return;
         if (el.addEventListener) {
             el.addEventListener(eventType, function(event) {
                 cb.apply(el, [event]);
@@ -56,7 +57,7 @@ var core = {
 
 
     /**
-     * Combine multiple objects
+     * Combine multiple objects. Mutates the first object.
      *
      * @returns {Object}
      */
@@ -70,6 +71,60 @@ var core = {
 
 
     /**
+     * Combine two objects and any sub-properties recursively
+     *
+     * @param target
+     * @param src
+     *
+     * @returns {boolean|Array|{}}
+     */
+    extendDeep: function(target, src) {
+
+        if(!src ) return target;
+
+        var that = this;
+        var array = Array.isArray(src);
+        var dst = array && [] || {};
+
+        if (array) {
+            target = target || [];
+            dst = dst.concat(target);
+            src.forEach(function(e, i) {
+                if (typeof dst[i] === 'undefined') {
+                    dst[i] = e;
+                } else if (typeof e === 'object') {
+                    dst[i] = that.extendDeep(target[i], e);
+                } else {
+                    if (target.indexOf(e) === -1) {
+                        dst.push(e);
+                    }
+                }
+            });
+        } else {
+            if (target && typeof target === 'object') {
+                Object.keys(target).forEach(function (key) {
+                    dst[key] = target[key];
+                })
+            }
+            Object.keys(src).forEach(function (key) {
+                if (typeof src[key] !== 'object' || !src[key]) {
+                    dst[key] = src[key];
+                }
+                else {
+                    if (!target[key]) {
+                        dst[key] = src[key];
+                    } else {
+                        dst[key] = that.extendDeep(target[key], src[key]);
+                    }
+                }
+            });
+        }
+
+        return dst;
+    },
+
+
+    /**
      * Add an event to an element or an array of elements
      *
      * @param el        {Node|Array}       Element | Array of elements
@@ -77,13 +132,19 @@ var core = {
      * @param cb        {Function}         Callback
      */
     on: function(el, eventType, cb) {
-        if(Object.prototype.toString.call( el ) === '[object Array]') {
-            for(var i = 0; i < el.length; i++) {
-                this._addEventListener(el[i], eventType, cb);
+
+        var i, j,
+            eventTypeList = eventType.split(" ");
+
+        for(i = 0; i < eventTypeList.length; i++) {
+            if(Object.prototype.toString.call( el ) === '[object Array]') {
+                for(j = 0; j < el.length; j++) {
+                    this._addEventListener(el[j], eventTypeList[i], cb);
+                }
             }
-        }
-        else {
-            this._addEventListener(el, eventType, cb);
+            else {
+                this._addEventListener(el, eventTypeList[i], cb);
+            }
         }
     },
 
@@ -273,6 +334,16 @@ var core = {
             return true;
         }
         return false;
+    },
+
+
+    /**
+     * Add classes to <html> to indicate if js is enabled
+     */
+    detectJs: function() {
+        var html = document.getElementsByTagName("html");
+        this.removeClass(html[0], 'no-js');
+        this.addClass(html[0], 'js');
     },
 
     insertAfter: function(newNode, referenceNode) {
