@@ -167,24 +167,39 @@ var core = {
 
 
     /**
-     * Select a single DOM element
+     * Optimized version of querySelectorAll
      *
      * @param selector  {string}
      * @returns {Node}
      */
-    select: function(selector) {
-        return document.querySelector(selector);
-    },
+    select: function(selector, context) {
+        var simpleRe = /^(#?[\w-]+|\.[\w-.]+)$/,
+            periodRe = /\./g,
+            slice = [].slice,
+            classes;
 
+            context = context || window.document;
 
-    /**
-     * Select a list of DOM elements.
-     *
-     * @param selector {String}
-     * @returns {Array}
-     */
-    selectAll: function(selector) {
-        return [].slice.call(document.querySelectorAll(selector));
+            // Redirect simple selectors to the more performant function
+            if(simpleRe.test(selector)) {
+                switch(selector.charAt(0)) {
+                    //Handle ID based selectors
+                    case '#':
+                        return [context.getElementById(selector.substr(1))];
+                    
+                    // Handle class based selectors
+                    // Query by multiple classes by converting the selector
+                    // string int single spaced class names
+                    case '.':
+                        classes = selector.substr(1).replace(periodRe, ' ');
+                        return slice.call(context.getElementsByClassName(classes));
+                    default: 
+                        return slice.call(context.getElementsByTagName(selector));
+                }
+            }
+
+            // Default to 'querySelectorAll'
+            return slice.call(context.querySelectorAll(selector));
     },
 
 
@@ -334,20 +349,6 @@ var core = {
             return true;
         }
         return false;
-    },
-
-
-    /**
-     * Add classes to <html> to indicate if js is enabled
-     */
-    detectJs: function() {
-        var html = document.getElementsByTagName("html");
-        this.removeClass(html[0], 'no-js');
-        this.addClass(html[0], 'js');
-    },
-
-    insertAfter: function(newNode, referenceNode) {
-        referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
     }
 };
 
