@@ -78,32 +78,6 @@ var core = {
 
 
     /**
-     * Add an event to an element or an array of elements
-     * TODO: Make this better - see evernote. Or move into an events module
-     *
-     * @param el        {Node|Array}       Element | Array of elements
-     * @param eventType {String}           Event Type
-     * @param cb        {Function}         Callback
-     */
-    on: function(el, eventType, cb) {
-
-        var i, j,
-            eventTypeList = eventType.split(" ");
-
-        for(i = 0; i < eventTypeList.length; i++) {
-            if(Object.prototype.toString.call( el ) === '[object Array]') {
-                for(j = 0; j < el.length; j++) {
-                    el[j].addEventListener(eventTypeList[i], cb);
-                }
-            }
-            else {
-                el.addEventListener(eventTypeList[i], cb);
-            }
-        }
-    },
-
-
-    /**
      * Trigger an event on an element
      *
      * @param el
@@ -160,6 +134,7 @@ var core = {
 
     /**
      * Add a class to an element - browser compatible with old IE
+     * TODO: make this support arrays of elements
      *
      * @param el
      * @param className
@@ -180,6 +155,7 @@ var core = {
 
     /**
      * Remove a class
+     * TODO: make this support arrays of elements
      *
      * @param el
      * @param className

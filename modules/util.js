@@ -19,10 +19,7 @@ var utility = {
      * @returns {boolean}
      */
     matchStrings: function(string1, string2) {
-        if(string1 === string2) {
-            return true;
-        }
-        return false;
+        return (string1 === string2);
     },
 
 

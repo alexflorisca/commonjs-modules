@@ -21,4 +21,4 @@ var ie = {
     }
 };
 
-modules.export = ie;
+module.exports = ie;
