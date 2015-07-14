@@ -9,55 +9,8 @@
 var core = {
 
     /**
-     * Convert a NodeList to an Array
-     *
-     * @param nodeList {NodeList}
-     * @returns {Array}
-     * @private
-     */
-    _nodeListToArray: function(nodeList) {
-        var elArray = [];
-        for(var i = nodeList.length; i--; elArray.unshift(nodeList[i]));
-        return elArray;
-    },
-
-
-    /**
-     * Cross browser version of addEventListener
-     *
-     * @param el            {Node}
-     * @param eventType     {String}
-     * @param cb            {Function}
-     * @private
-     */
-    _addEventListener: function(el, eventType, cb) {
-        if(!el || !eventType || typeof cb !== 'function') return;
-        if (el.addEventListener) {
-            el.addEventListener(eventType, function(event) {
-                cb.apply(el, [event]);
-            }, false);
-        } else if (el.attachEvent)  {
-            el.attachEvent('on'+eventType, function(event) {
-                cb.apply(el, [event]);
-            });
-        }
-    },
-
-
-    /**
-     * Replace any new line or multiple spaces with a single space
-     *
-     * @param string {string}
-     * @return {string}       
-     */
-    trimNewLines: function(string) {
-      //   /(\r\n|\n|\r)\s{2,}/gm
-      return string.replace(/(\r\n|\n|\r)/gm, ' ').replace(/\s{2,}/g,' ');
-    },
-
-
-    /**
      * Combine multiple objects. Mutates the first object.
+     * TODO: Combine the extend & extendDeep funcs. Looks at how underscore does it.
      *
      * @returns {Object}
      */
@@ -126,6 +79,7 @@ var core = {
 
     /**
      * Add an event to an element or an array of elements
+     * TODO: Make this better - see evernote. Or move into an events module
      *
      * @param el        {Node|Array}       Element | Array of elements
      * @param eventType {String}           Event Type
@@ -139,11 +93,11 @@ var core = {
         for(i = 0; i < eventTypeList.length; i++) {
             if(Object.prototype.toString.call( el ) === '[object Array]') {
                 for(j = 0; j < el.length; j++) {
-                    this._addEventListener(el[j], eventTypeList[i], cb);
+                    el[j].addEventListener(eventTypeList[i], cb);
                 }
             }
             else {
-                this._addEventListener(el, eventTypeList[i], cb);
+                el.addEventListener(eventTypeList[i], cb);
             }
         }
     },
@@ -201,17 +155,6 @@ var core = {
 
             // Default to 'querySelectorAll'
             return slice.call(context.querySelectorAll(selector));
-    },
-
-
-    /**
-     * Return the text of an element.
-     *
-     * @param el {Node}
-     * @returns {bool | string}
-     */
-    text: function(el) {
-        return (typeof el === 'undefined' || el === null) ? false : el.innerText || el.textContent;
     },
 
 
@@ -293,63 +236,16 @@ var core = {
 
 
     /**
-     * Validate an email address
+     * Get a data attribute for an element
+     * TODO: Needs testing
      *
-     * @param email
-     * @returns {boolean}
+     * @param el
+     * @param attr
+     * @returns {string|boolean}
      */
-    validateEmail: function(email) {
-        if(!email.match) {
-            return false;
-        }
-        return !!email.match(new RegExp("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?"));
-    },
-    
-
-    /**
-     * Return the selected child node by passing a class, id or node name / currently only supports one class name at a time
-     *
-     * @param containing element
-     * @param element tag reference
-     * @returns {element_node / Array}
-     */
-    children: function(parentNode, requestedChild) {
-        var requestedChildNodes = parentNode.childNodes,
-            returnData = [];
-
-        // Remove the extra identifiers
-        requestedChild = requestedChild.replace('.', '').replace('#', '');
-
-        for (var i = (requestedChildNodes.length - 1), end = 0; i >= end; --i) {
-            // Only loop through elements, not text or comment blocks
-            if (requestedChildNodes[i].nodeType === 1) {
-                // Add any element_nodes to the list
-                if (requestedChildNodes[i].nodeName.toLowerCase() === requestedChild ||
-                    this.hasClass(requestedChildNodes[i], requestedChild) ||
-                    requestedChildNodes[i].getAttribute('id') === requestedChild) {
-                    // Create array of matching elements
-                    returnData.unshift(requestedChildNodes[i]);
-                }
-            }
-        }
-
-        // If only one element_node found just return, otherwise return array
-        return (returnData.length === 1) ? returnData[0] : returnData;
-    },
-
-
-    /**
-     * Check if two strings are the same
-     *
-     * @param string1
-     * @param string2
-     * @returns {boolean}
-     */
-    matchStrings: function(string1, string2) {
-        if(string1 === string2) {
-            return true;
-        }
-        return false;
+    getDataAttr: function(el, attr) {
+        var dataAttr = el.getAttribute("data-" + attr);
+        return dataAttr || false;
     }
 };
 
