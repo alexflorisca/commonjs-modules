@@ -170,7 +170,8 @@ var core = {
      * Optimized version of querySelectorAll
      *
      * @param selector  {string}
-     * @returns {Node}
+     * @param context   {string}
+     * @returns         {Array}
      */
     select: function(selector, context) {
         var simpleRe = /^(#?[\w-]+|\.[\w-.]+)$/,
