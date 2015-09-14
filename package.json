@@ -3,11 +3,12 @@
   "version": "1.0.0",
   "description": "A bunch of useful commonJS modules",
   "scripts": {
-    "test": "node_modules/karma/bin/karma start",
+    "test": "node_modules/karma/bin/karma start --single-run",
     "test-once": "node_modules/karma/bin/karma start --single-run"
   },
   "devDependencies": {
     "browserify": "^10.2.4",
+    "function-bind": "^1.0.2",
     "grunt": "^0.4.5",
     "grunt-browserify": "^3.8.0",
     "grunt-cli": "^0.1.13",
@@ -15,11 +16,15 @@
     "jasmine-core": "^2.3.4",
     "karma": "^0.12.36",
     "karma-browserify": "^4.2.1",
+    "karma-chrome-launcher": "^0.2.0",
+    "karma-firefox-launcher": "^0.1.6",
     "karma-jasmine": "^0.3.5",
     "karma-jasmine-ajax": "^0.1.12",
     "karma-jasmine-jquery": "^0.1.1",
     "karma-mocha-reporter": "^1.0.2",
+    "karma-opera-launcher": "^0.2.0",
     "karma-phantomjs-launcher": "^0.2.0",
+    "karma-safari-launcher": "^0.1.1",
     "keen.io": "^0.1.3",
     "phantomjs": "^1.9.17"
   }

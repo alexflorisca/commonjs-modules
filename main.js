@@ -1,7 +1,5 @@
 // Initialise any modules here
 window.$ =      require("./modules/core");
-window.e =  require('./modules/event');
-
 
 window.testing = {
     testEvent: function() {

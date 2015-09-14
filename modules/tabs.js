@@ -15,7 +15,7 @@ var tabs = {
      */
     init: function() {
         var _this = this,
-            tabToggleEls = core.selectAll('[data-toggle="tab"]');
+            tabToggleEls = core.select('[data-toggle="tab"]');
 
         core.on(tabToggleEls, 'click', function(e) {
             e.preventDefault();
@@ -49,10 +49,8 @@ var tabs = {
     addActiveClass: function(el) {
         var activeContentEl;
 
-        // Add isActive class to parent of clicked element
         core.addClass(el.parentNode, 'isActive');
 
-        // Add isActive class to corresponding href target
         activeContentEl = document.getElementById(el.getAttribute('href').substr(1));
         core.addClass(activeContentEl, 'isActive');
     }

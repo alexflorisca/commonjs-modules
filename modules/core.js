@@ -9,88 +9,116 @@
 var core = {
 
     /**
-     * Combine multiple objects. Mutates the first object.
-     * TODO: Combine the extend & extendDeep funcs. Looks at how underscore does it.
+     * Extend a target object with the properties of one or more other objects
      *
+     * @param {Object}      target
+     * @param {Object}      [sources]
      * @returns {Object}
      */
-    extend: function() {
-        for(var i=1; i<arguments.length; i++)
-            for(var key in arguments[i])
-                if(arguments[i].hasOwnProperty(key))
-                    arguments[0][key] = arguments[i][key];
-        return arguments[0];
+    extend: function(target, sources) {
+        var _mergeTwoObjects = function(target, src) {
+                for(var key in src) {
+                    if (src.hasOwnProperty(key)) {
+                        if(target[key] && typeof target[key] === 'object' && typeof src[key] === 'object') {
+                            target[key] = _mergeTwoObjects(target[key], src[key]);
+                        }
+                        else {
+                            target[key] = src[key];
+                        }
+                    }
+                }
+                return target;
+            };
+
+        if(arguments.length === 0) return false;
+        if(arguments.length === 1) return arguments[0];
+
+        for(var i = 1; i < arguments.length; i++) {
+            target = _mergeTwoObjects(target, arguments[i]);
+        }
+
+        return target;
     },
 
 
     /**
-     * Combine two objects and any sub-properties recursively
+     * Add an event to an element or an array of elements
      *
-     * @param target
-     * @param src
-     *
-     * @returns {boolean|Array|{}}
+     * @param {Node|Array}      el
+     * @param {String}          event
+     * @param {Function}        cb
+     * @param {Function}        context
+     * @param {Boolean}         userCapture
      */
-    extendDeep: function(target, src) {
+    on: function(el, event, cb, context, userCapture) {
+        userCapture = (typeof userCapture === 'undefined') ? false : userCapture;
+        cb = (typeof context === 'undefined') ? cb : cb.bind(context);
 
-        if(!src ) return target;
+        // We might have multiple types of events defined as a string.
+        // E.g. 'click hover change'
+        var eventList = event.split(" ");
 
-        var that = this;
-        var array = Array.isArray(src);
-        var dst = array && [] || {};
-
-        if (array) {
-            target = target || [];
-            dst = dst.concat(target);
-            src.forEach(function(e, i) {
-                if (typeof dst[i] === 'undefined') {
-                    dst[i] = e;
-                } else if (typeof e === 'object') {
-                    dst[i] = that.extendDeep(target[i], e);
-                } else {
-                    if (target.indexOf(e) === -1) {
-                        dst.push(e);
-                    }
-                }
-            });
-        } else {
-            if (target && typeof target === 'object') {
-                Object.keys(target).forEach(function (key) {
-                    dst[key] = target[key];
-                })
+        eventList.forEach(function(currentEvent) {
+            // Array of elements
+            if(Array.isArray(el)) {
+                el.forEach(function(currentEl) {
+                    currentEl.addEventListener(currentEvent, cb, userCapture);
+                });
             }
-            Object.keys(src).forEach(function (key) {
-                if (typeof src[key] !== 'object' || !src[key]) {
-                    dst[key] = src[key];
-                }
-                else {
-                    if (!target[key]) {
-                        dst[key] = src[key];
-                    } else {
-                        dst[key] = that.extendDeep(target[key], src[key]);
-                    }
-                }
+            // Single element
+            else {
+                el.addEventListener(currentEvent, cb, userCapture);
+            }
+        });
+    },
+
+
+    /**
+     * Remove an event listener from one or more elements
+     *
+     * @param {Node|Array}  el
+     * @param {String}      e
+     * @param {Function}    cb
+     */
+    off: function(el, e, cb) {
+        if(Array.isArray(el)) {
+            el.forEach(function(current) {
+                current.removeEventListener(e, cb);
             });
         }
-
-        return dst;
+        else {
+            el.removeEventListener(e, cb);
+        }
     },
 
 
     /**
      * Trigger an event on an element
      *
-     * @param el
-     * @param e
+     * @param {Node|Array}      els
+     * @param {String}          e - multiple events can be separated by a space e.g. "click change"
      */
-    trigger: function(el, e) {
-        if ("createEvent" in document) {
-            var evt = document.createEvent("HTMLEvents");
-            evt.initEvent(e, false, true);
-            el.dispatchEvent(evt);
+    trigger: function(els, e) {
+        var dispatchEvent = function(el) {
+            if ("createEvent" in document) {
+                var evt = document.createEvent("HTMLEvents"),
+                    eventList = e.split(" ");
+
+                eventList.forEach(function(e) {
+                    evt.initEvent(e, false, true);
+                    el.dispatchEvent(evt);
+                });
+            }
+        };
+
+        if(Array.isArray(els)) {
+            els.forEach(function(el) {
+                dispatchEvent(el);
+            })
         }
-        else
-            el.fireEvent("on"+e);
+        else {
+            dispatchEvent(els);
+        }
     },
 
 
@@ -136,62 +164,91 @@ var core = {
      * Add a class to an element - browser compatible with old IE
      * TODO: make this support arrays of elements
      *
-     * @param el
-     * @param className
+     * @param {Node|Array}      els
+     * @param {String}          className
      * @returns {*}
      */
-    addClass: function(el, className) {
-        if(!el || !className) {
-            return false;
-        }
+    addClass: function(els, className) {
+        if(!els || !className) return;
 
-        if(el.classList) {
-          return el.classList.add(className);
-        }
+        var addClassToEl = function(el) {
+            if(el.classList) {
+                el.classList.add(className);
+            }
+            else {
+                el.className = el.className + " " + className;
+            }
+        };
 
-        el.className = el.className + " " + className;
+        if(Array.isArray(els)) {
+            els.forEach(function(el) {
+                addClassToEl(el);
+            });
+        }
+        else {
+            addClassToEl(els);
+        }
     },
 
 
     /**
      * Remove a class
-     * TODO: make this support arrays of elements
      *
-     * @param el
-     * @param className
+     * @param {Node|Array}      els
+     * @param {String}          className
      * @returns {*}
      */
-    removeClass: function(el, className) {
-        if (!el || !className) {
-            return false;
-        }
+    removeClass: function(els, className) {
+        if (!els || !className) return;
 
-        if(el.classList) {
-            return el.classList.remove(className);
-        }
+        var removeClassFromEl = function(el) {
+            if(el.classList) {
+                el.classList.remove(className);
+            }
 
-        var regexp = new RegExp("(^|\\s)" + className + "(\\s|$)", "g");
-        el.className = el.className.replace(regexp, "$2");
+            var regexp = new RegExp("(^|\\s)" + className + "(\\s|$)", "g");
+            el.className = el.className.replace(regexp, "$2");
+        };
+
+        if(Array.isArray(els)) {
+            els.forEach(function(el) {
+                removeClassFromEl(el);
+            });
+        }
+        else {
+            removeClassFromEl(els);
+        }
     },
 
 
     /**
      * Check if an element has a class
      *
-     * @param el
-     * @param className
+     * @param {Node|Array}      els
+     * @param {String}          className
      * @returns {boolean}
      */
-    hasClass: function(el, className) {
-        if (!el || !className) {
-            return false;
-        }
+    hasClass: function(els, className) {
+        if (!els || !className) return false;
 
-        if(el.classList) {
-            return el.classList.contains(className);
-        }
+        var elHasClass = function(el) {
+            if(el.classList) {
+                return el.classList.contains(className);
+            }
 
-        return !!el.className.match(new RegExp('(\\s|^)'+className+'(\\s|$)'));
+            return !!el.className.match(new RegExp('(\\s|^)'+className+'(\\s|$)'));
+        };
+
+        if(Array.isArray(els)) {
+            els.forEach(function(el) {
+                if(elHasClass(el) === false) return false;
+            });
+
+            return true;
+        }
+        else {
+            return elHasClass(els);
+        }
     },
 
 
