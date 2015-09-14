@@ -277,8 +277,7 @@ var core = {
      * @returns {string|boolean}
      */
     getDataAttr: function(el, attr) {
-        var dataAttr = el.getAttribute("data-" + attr);
-        return dataAttr || false;
+        return (typeof attr === 'string') ? el.getAttribute("data-" + attr) : false;
     }
 };
 

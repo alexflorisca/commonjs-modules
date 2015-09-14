@@ -62,41 +62,43 @@ describe('core.js', function() {
     });
 
 
-    it("on() should attach an event to one or more elements", function() {
-        var buttons = core.select(".clickMe"),
-            timesTriggered = 0,
-            cb = function() { timesTriggered++; };
+    describe("on() ", function() {
+        it("Should attach an event to one or more elements", function() {
+            var buttons = core.select(".clickMe"),
+                timesTriggered = 0,
+                cb = function() { timesTriggered++; };
 
-        core.on(buttons, 'click', cb);
-        core.trigger(buttons, 'click');
-        expect(timesTriggered).toBe(2);
-    });
+            core.on(buttons, 'click', cb);
+            core.trigger(buttons, 'click');
+            expect(timesTriggered).toBe(2);
+        });
 
-    it("on() should attach multiple events", function() {
-        var buttons = core.select(".clickMe"),
-            timesTriggered = 0,
-            cb = function() { timesTriggered++; };
+        it("Should attach multiple events", function() {
+            var buttons = core.select(".clickMe"),
+                timesTriggered = 0,
+                cb = function() { timesTriggered++; };
 
-        core.on(buttons, 'click hover', cb);
-        core.trigger(buttons, 'click');
-        expect(timesTriggered).toBe(2);
+            core.on(buttons, 'click hover', cb);
+            core.trigger(buttons, 'click');
+            expect(timesTriggered).toBe(2);
 
-        core.trigger(buttons, 'hover');
-        expect(timesTriggered).toBe(4);
-    });
+            core.trigger(buttons, 'hover');
+            expect(timesTriggered).toBe(4);
+        });
 
 
-    it("on() should set the context of the callback function", function() {
-        this.timesTriggered = 0;
+        it("Should set the context of the callback function", function() {
+            this.timesTriggered = 0;
 
-        var buttons = core.select(".clickMe"),
-            cb = function() {
-                this.timesTriggered++;
-            };
+            var buttons = core.select(".clickMe"),
+                cb = function() {
+                    this.timesTriggered++;
+                };
 
-        core.on(buttons, 'click hover', cb, this);
-        core.trigger(buttons, 'click');
-        expect(this.timesTriggered).toBe(2);
+            core.on(buttons, 'click hover', cb, this);
+            core.trigger(buttons, 'click');
+            expect(this.timesTriggered).toBe(2);
+        });
     });
 
 
@@ -111,8 +113,6 @@ describe('core.js', function() {
     });
 
 
-
-
     it("hasClass()", function() {
         var element = document.getElementById("banana");
         expect(core.hasClass(element, 'banana')).toBeTruthy();
@@ -122,53 +122,22 @@ describe('core.js', function() {
 
 
     });
-    //
-    //
-    //it("toggleClass()", function() {
-    //    var element = core.select("#banana");
-    //    expect(core.hasClass(element, "boo")).toBeFalsy();
-    //    core.toggleClass(element, "boo");
-    //    expect(core.hasClass(element, "boo")).toBeTruthy();
-    //    core.toggleClass(element, "boo");
-    //    expect(core.hasClass(element, "boo")).toBeFalsy();
-    //});
-    //
-    //
-    //it("validateEmail()", function() {
-    //    expect(core.validateEmail("fakeemail")).toBeFalsy();
-    //    expect(core.validateEmail("me@example.com")).toBeTruthy();
-    //});
-    //
-    //// Check to see if the children function returns nodes based on node name, class name or an id
-    //it("children()", function(){
-    //    var parentElement = core.select('.children-test'),
-    //        spanChildElement = 'span',
-    //        singleTest = core['children'](parentElement, spanChildElement),
-    //        multiTest = core['children'](parentElement, '.multi-check'),
-    //        idTest = core['children'](parentElement, '#node-check');
-    //
-    //    // Check to see if single node reference reutrns
-    //    expect(singleTest).toBeDefined();
-    //
-    //    // Check to see if multiple elements returned in array
-    //    expect(multiTest.length).toBeGreaterThan(1);
-    //
-    //    // Check to see if ID request functions as expected
-    //    expect(idTest).toBeDefined();
-    //
-    //    // Setup spy for arguments check
-    //    spyOn(core, 'children');
-    //
-    //    // Execute function
-    //    core['children'](core.select('.children-test'), 'span');
-    //
-    //    // Check to see if arguments passed in correctly
-    //    expect(core.children).toHaveBeenCalledWith(parentElement, spanChildElement);
-    //});
-    //
-    //
-    //it("matchStrings()", function() {
-    //    expect(core.matchStrings("hello", "hello")).toBeTruthy();
-    //    expect(core.matchStrings("hello", "goodbye")).toBeFalsy();
-    //});
+
+
+    it("toggleClass()", function() {
+        var element = core.select("#banana")[0];
+        expect(core.hasClass(element, "boo")).toBeFalsy();
+        core.toggleClass(element, "boo");
+        expect(core.hasClass(element, "boo")).toBeTruthy();
+        core.toggleClass(element, "boo");
+        expect(core.hasClass(element, "boo")).toBeFalsy();
+    });
+
+
+    it("getDataAttr()", function() {
+        var element = core.select("#dataAttr")[0];
+        console.log(element);
+        var dataAttr = core.getDataAttr(element, "elephants");
+        expect(dataAttr).toEqual("Big Dawg");
+    })
 });

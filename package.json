@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "A bunch of useful commonJS modules",
   "scripts": {
-    "test": "node_modules/karma/bin/karma start --single-run",
+    "test": "node_modules/karma/bin/karma start",
     "test-once": "node_modules/karma/bin/karma start --single-run"
   },
   "devDependencies": {
