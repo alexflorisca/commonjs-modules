@@ -162,7 +162,6 @@ var core = {
 
     /**
      * Add a class to an element - browser compatible with old IE
-     * TODO: make this support arrays of elements
      *
      * @param {Node|Array}      els
      * @param {String}          className

@@ -15,9 +15,9 @@ module.exports = function(config) {
 
         // list of files / patterns to load in the browser
         files: [
-            'tests/specs/coreSpec.js',
+            'tests/specs/collapseSpec.js',
             'tests/specs/_specConfig.js',
-            'tests/fixtures/coreFixture.html'
+            'tests/fixtures/collapseFixture.html'
         ],
 
 
@@ -58,7 +58,8 @@ module.exports = function(config) {
 
         // start these browsers
         // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-        browsers: ['PhantomJS', 'Chrome', 'Firefox', 'Safari'],
+        //browsers: ['PhantomJS', 'Chrome', 'Firefox', 'Safari'],
+        browsers: ['PhantomJS'],
 
         browserify: {
             debug: true,

@@ -18,7 +18,6 @@ describe('ajax.js', function() {
     });
 
 
-
     it('_encodeURIArray() should return an array of query parameters', function() {
         var data = [];
         data['world'] = 'Hello World;';
@@ -47,6 +46,7 @@ describe('ajax.js', function() {
         window.XDomainRequest = function() {};
 
         var r = ajax._makeRequest();
+        expect(r.xhr).not.toBeDefined();
         expect(r.xdr).toBeDefined();
     });
 

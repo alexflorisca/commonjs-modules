@@ -119,8 +119,6 @@ describe('core.js', function() {
 
         element = core.select("button");
         expect(core.hasClass(element, 'clickMe')).toBeTruthy();
-
-
     });
 
 
@@ -135,9 +133,10 @@ describe('core.js', function() {
 
 
     it("getDataAttr()", function() {
-        var element = core.select("#dataAttr")[0];
-        console.log(element);
-        var dataAttr = core.getDataAttr(element, "elephants");
+        var dataAttr = core.getDataAttr(core.select("#dataAttr")[0], "elephants");
         expect(dataAttr).toEqual("Big Dawg");
+
+        var dataAttr2 = core.getDataAttr(core.select("#dataAttr2")[0], "more-elephants");
+        expect(dataAttr2).toEqual("More elephants");
     })
 });

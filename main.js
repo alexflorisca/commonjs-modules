@@ -1,5 +1,17 @@
+'use strict';
+
 // Initialise any modules here
 window.$ =      require("./modules/core");
+
+var collapse =  require("./modules/collapse");
+
+
+document.onreadystatechange = function() {
+    if(document.readyState == "complete") {
+        collapse.init();
+    }
+};
+
 
 window.testing = {
     testEvent: function() {

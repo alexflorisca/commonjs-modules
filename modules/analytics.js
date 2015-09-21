@@ -11,10 +11,27 @@ var core =  require('./core');
 var analytics = {
 
     /**
+     * Get the event properties from DOM
+     *
+     * @param el
+     * @returns {{category: string, action: string, label: string, value: string}}
+     * @private
+     */
+    _getElementDataProperties: function(el) {
+        return {
+            category: el.getAttribute('data-event-category'),
+            action: el.getAttribute('data-event-action'),
+            label: el.getAttribute('data-event-label'),
+            value: el.getAttribute('data-event-value')
+        }
+    },
+
+
+    /**
      * Initialise the google analytics
      *
-     * @param options
-     * @param _gaq
+     * @param options - global object with GA options
+     * @param _gaq    - global _gaq object must be set outside for old school analytics to work
      * @returns {boolean}
      */
     init: function(options, _gaq) {
@@ -55,13 +72,13 @@ var analytics = {
         var _this = this;
 
         // Bing click events
-        core.on(core.selectAll('[data-track-event="click"]'), 'click', function() {
+        core.on(core.select('[data-track-event="click"]'), 'click', function() {
             var data = _this._getElementDataProperties(this);
             _this.trackEvent(data.category, data.action, data.label, data.value);
         });
 
         // Bind submit events
-        core.on(core.selectAll('[data-track-event="submit"]'), 'submit', function() {
+        core.on(core.select('[data-track-event="submit"]'), 'submit', function() {
             var data = _this._getElementDataProperties(this);
             _this.trackEvent(data.category, data.action, data.label, data.value);
         });
@@ -91,16 +108,6 @@ var analytics = {
 
         _gaq.push(['_trackEvent', category, action, label, parseInt(value)]);
         return true;
-    },
-
-
-    _getElementDataProperties: function(el) {
-        return {
-            category: el.getAttribute('data-event-category'),
-            action: el.getAttribute('data-event-action'),
-            label: el.getAttribute('data-event-label'),
-            value: el.getAttribute('data-event-value')
-        }
     }
 
 };
