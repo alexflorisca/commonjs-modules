@@ -5,74 +5,74 @@ var core = require('./core');
  */
 var options = {},
     defaults = {
-    selector: '[data-validate-form]',           // Selector for adding validation to forms
-    errorClass: 'is-Error',                     // Class name added to an invalid input
-    disableSubmit: false,                        // Should the submit button be disabled until the form is valid?
+        selector: '[data-validate-form]',           // Selector for adding validation to forms
+        errorClass: 'is-Error',                     // Class name added to an invalid input
+        disableSubmit: false,                        // Should the submit button be disabled until the form is valid?
 
-    /*  Validator objects contain an "error" attribute which contains the
-     error message, and an "isValid()" function which returns a boolean
-     value. Where possible, validators use the HTML5 validation API.
+        /*  Validator objects contain an "error" attribute which contains the
+         error message, and an "isValid()" function which returns a boolean
+         value. Where possible, validators use the HTML5 validation API.
 
-     Notes:
-     - "this" in isValid() refers to the html element being validated
-     - "%" refers to the input's corresponding label value, lowercased.
-     */
-    validators: {
-        required: {
-            error: 'Please enter your %',
-            isValid: function() {
-                return !this.validity.valueMissing;
-            }
-        },
+         Notes:
+         - "this" in isValid() refers to the html element being validated
+         - "%" refers to the input's corresponding label value, lowercased.
+         */
+        validators: {
+            required: {
+                error: 'Please enter your %',
+                isValid: function() {
+                    return !this.validity.valueMissing;
+                }
+            },
 
-        email: {
-            error: 'Please enter a valid email address',
-            isValid: function() {
-                return !this.validity.typeMismatch;
-            }
-        },
+            email: {
+                error: 'Please enter a valid email address',
+                isValid: function() {
+                    return !this.validity.typeMismatch;
+                }
+            },
 
-        tooShort: {
-            error: "% is too short",
-            isValid: function() {
-                return !this.validity.tooShort;
-            }
-        },
+            tooShort: {
+                error: "% is too short",
+                isValid: function() {
+                    return !this.validity.tooShort;
+                }
+            },
 
-        tooLong: {
-            error: "% is too long",
-            isValid: function() {
-                return !this.validity.tooLong;
-            }
-        },
+            tooLong: {
+                error: "% is too long",
+                isValid: function() {
+                    return !this.validity.tooLong;
+                }
+            },
 
-        invalid: {
-            error: '% contains invalid characters',
-            isValid: function(){
-                // Check for invalid characters and that all characters are in the ISO-8859-1 range
-                var charCheck = !!this.value.match(new RegExp("^([^$%@!])+$"));
-                var isoCheck = !!this.value.match(new RegExp("^([\x00-\x7F\xA0-\xFF])+$"));
+            invalid: {
+                error: '% contains invalid characters',
+                isValid: function(){
+                    // Check for invalid characters and that all characters are in the ISO-8859-1 range
+                    var charCheck = !!this.value.match(new RegExp("^([^$%@!])+$"));
+                    var isoCheck = !!this.value.match(new RegExp("^([\x00-\x7F\xA0-\xFF])+$"));
 
-                return (charCheck && isoCheck);
-            }
-        },
+                    return (charCheck && isoCheck);
+                }
+            },
 
-        password: {
-            error: 'Passwords must contain a minimum of 6 characters and contain a mixture of letters and numbers',
-            isValid: function() {
-                // Regex checks for one letter and one number
-                return !!this.value.match(new RegExp("^(?=.*[A-Za-z])(?=.*[0-9]).*$"));
-            }
-        },
+            password: {
+                error: 'Passwords must contain a minimum of 6 characters and contain a mixture of letters and numbers',
+                isValid: function() {
+                    // Regex checks for one letter and one number
+                    return !!this.value.match(new RegExp("^(?=.*[A-Za-z])(?=.*[0-9]).*$"));
+                }
+            },
 
-        match: {
-            error: 'Passwords do not match',
-            isValid: function (elementId) {
-                return core.matchStrings(this.value, document.getElementById(elementId).value);
+            match: {
+                error: 'Passwords do not match',
+                isValid: function (elementId) {
+                    return core.matchStrings(this.value, document.getElementById(elementId).value);
+                }
             }
         }
-    }
-};
+    };
 
 
 /**
@@ -379,9 +379,9 @@ var validate = {
     _extendInput: function (input) {
         input.type = input.getAttribute("type");
 
-        // TODO: Make this loop through the polfills object and add all of them.
+        // TODO: Make this loop through the polyfills object and add all of them.
         // Some browsers haven't implemented the tooShort property in the validity object so we're adding it here.
-        if (!input.validity.tooShort) {
+        if (!("tooShort" in input.validity)) {
             input.validity.tooShort = false;
             core.on(input, 'input change', function (event) {
                 this.validity.tooShort = polyfills.tooShort(this);
