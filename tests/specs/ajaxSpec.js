@@ -18,6 +18,19 @@ describe('ajax.js', function() {
     });
 
 
+    it('_getHostnameFromString', function() {
+        var hostname = ajax._getHostnameFromString('http://example.com/page?getparam=1');
+        expect(hostname).toBe('example.com');
+    });
+
+
+    it('_isSameOriginRequest', function() {
+        expect(ajax._isSameOriginRequest('http://localhost')).toBeTruthy();
+        expect(ajax._isSameOriginRequest('http://example.com')).toBeFalsy();
+        expect(ajax._isSameOriginRequest('index.html')).toBeTruthy();
+    });
+
+
     it('_encodeURIArray() should return an array of query parameters', function() {
         var data = [];
         data['world'] = 'Hello World;';
@@ -29,39 +42,53 @@ describe('ajax.js', function() {
     });
 
 
-    it('_makeRequest() should return a request object with an xhr property', function() {
-        // Mock XHR object in every modern browser
-        window.XMLHttpRequest = function() {
-            this.withCredentials = true;
-        };
+    describe('_createRequest()', function() {
+        it('Should return a request object with an xhr property when making same origin requests', function() {
+            // Mock XHR object in every modern browser
+            window.XMLHttpRequest = function() {};
 
-        var r = ajax._makeRequest();
-        expect(r.xhr).toBeDefined();
-    });
+            var r = ajax._createRequest();
+            expect(r.xhr).toBeDefined();
+        });
 
+        it('Should return a request object with an xhr property when making same CORS requests in new browsers', function() {
+            // Mock XHR object in every modern browser
+            window.XMLHttpRequest = function() {
+                this.withCredentials = true;
+            };
 
-    it('_makeRequest() should return a request object with an xdr property - for IE8+9', function() {
-        // Mock XHR & XDR objects in IE8+9
-        window.XMLHttpRequest = function() {};
-        window.XDomainRequest = function() {};
+            var r = ajax._createRequest('http://google.com');
+            expect(r.xhr).toBeDefined();
+            expect(r.xdr).not.toBeDefined();
+        });
 
-        var r = ajax._makeRequest();
-        expect(r.xhr).not.toBeDefined();
-        expect(r.xdr).toBeDefined();
+        it('Should return a request object with an xdr property - for IE8+9 when making CORS request', function() {
+            // Mock XHR & XDR objects in IE8+9
+            window.XMLHttpRequest = function() {};
+            window.XDomainRequest = function() {};
+
+            var r = ajax._createRequest('http://google.com');
+            expect(r.xhr).not.toBeDefined();
+            expect(r.xdr).toBeDefined();
+        });
     });
 
 
     it('_sendRequestViaXHR() should set the correct headers for POST and execute callback on success', function() {
-        var cb = jasmine.createSpy("success");
-        var r = ajax._makeRequest();
+        var r = ajax._createRequest(),
+            options = {
+                url: 'http://google.com',
+                method: 'POST',
+                success: jasmine.createSpy("success")
+            };
 
         spyOn(r.xhr, 'setRequestHeader');
 
-        ajax._sendRequestViaXHR(r, 'http://google.com', 'POST', cb, '', true);
+        ajax._sendRequestViaXHR(r, options);
 
         expect(r.xhr.setRequestHeader).toHaveBeenCalledWith('Content-type', 'application/x-www-form-urlencoded');
         expect(jasmine.Ajax.requests.mostRecent().url).toBe('http://google.com');
-        expect(cb).not.toHaveBeenCalled();
+        expect(options.success).not.toHaveBeenCalled();
 
         jasmine.Ajax.requests.mostRecent().respondWith({
             "status": 200,
@@ -69,13 +96,17 @@ describe('ajax.js', function() {
             "responseText": "Text from server"
         });
 
-        expect(cb).toHaveBeenCalledWith("Text from server");
+        expect(options.success).toHaveBeenCalledWith("Text from server");
     });
 
 
     it('_send() should delegate to either _sendRequestViaXHR() or _sendRequestViaXDR() methods', function() {
-        var r = ajax._makeRequest();
-        var cb = function() {};
+       var options = {
+                url: 'http://google.com',
+                method: 'POST',
+                success: function() {}
+            };
+
         spyOn(ajax, '_sendRequestViaXHR');
         spyOn(ajax, '_sendRequestViaXDR');
 
@@ -83,41 +114,50 @@ describe('ajax.js', function() {
         window.XMLHttpRequest = function() {
             this.withCredentials = true;
         };
-        ajax._send('http://google.com', 'POST', cb, '', true);
+        ajax._send(options);
         expect(ajax._sendRequestViaXHR).toHaveBeenCalled();
 
         // Mock XHR & XDR objects in IE8+9
         window.XMLHttpRequest = function() {};
         window.XDomainRequest = function() {};
-        ajax._send('http://google.com', 'POST', cb, '', true);
+        ajax._send(options);
         expect(ajax._sendRequestViaXDR).toHaveBeenCalled();
     });
 
 
     it('get() should perform a GET request', function() {
-        var data = [];
-        data['param1'] ='awesome';
-        data['param2'] ='more awesome';
-        var cb = function() {};
+        var options = {
+            url: 'http://google.com',
+            data: ['awesome', 'more awesome'],
+            success: function() {}
+
+        };
 
         spyOn(ajax, '_send');
 
-        ajax.get('http://google.com', data, cb, true);
+        ajax.get(options);
 
-        expect(ajax._send).toHaveBeenCalledWith('http://google.com?param1=awesome&param2=more%20awesome', 'GET', cb, null, true);
+        expect(ajax._send).toHaveBeenCalledWith(options);
     });
 
 
     it('post() should perform a POST request', function() {
-        var data = [];
-        data['param1'] ='awesome';
-        data['param2'] ='more awesome';
-        var cb = function() {};
+        var options = {
+            url: 'http://google.com',
+            data: {
+                prop1: 'awesome',
+                prop2: 'more awesome'
+            },
+            success: function() {}
+        };
+
+        var expectedOptions = options;
+        expectedOptions.data = JSON.stringify(options.data);
 
         spyOn(ajax, '_send');
 
-        ajax.post('http://google.com', data, cb, true);
+        ajax.post(options);
 
-        expect(ajax._send).toHaveBeenCalledWith('http://google.com', 'POST', cb, 'param1=awesome&param2=more%20awesome', true);
+        expect(ajax._send).toHaveBeenCalledWith(expectedOptions);
     });
 });

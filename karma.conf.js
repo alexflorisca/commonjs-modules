@@ -15,9 +15,8 @@ module.exports = function(config) {
 
         // list of files / patterns to load in the browser
         files: [
-            'tests/specs/collapseSpec.js',
-            'tests/specs/_specConfig.js',
-            'tests/fixtures/collapseFixture.html'
+            'tests/specs/ajaxSpec.js',
+            'tests/specs/_specConfig.js'
         ],
 
 

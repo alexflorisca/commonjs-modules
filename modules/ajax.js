@@ -1,12 +1,79 @@
 /**
  * ajax.js
  *
- * Simple AJAX API similar to jQuery
+ * Simple AJAX API similar to jQuery but more lightweight.
+ * Supports cross domain requests.
+ * IE8+
+ *
+ *
+ * TODO: Add custom headers
+ * TODO: Add JSON as a response data type
  */
 
 'use strict';
 
 var ajax = {
+    /**
+     * Make a GET request
+     *
+     * @param {Object} options
+     */
+    get: function (options) {
+        options.method = 'GET';
+        console.log(options);
+
+        if(options.data) {
+            var query = this._encodeURIArray(options.data);
+            if(options.url.indexOf('?') < 0) {
+                options.url = options.url + '?';
+            }
+            else {
+                options.url = options.url + '&';
+            }
+            options.url = options.url + query.join('&');
+        }
+        this._send(options);
+    },
+
+
+    /**
+     * Make a POST request
+     *
+     * @param {Object} options
+     */
+    post: function (options) {
+        options.method = 'POST';
+        options.data = JSON.stringify(options.data);
+
+        this._send(options);
+    },
+
+
+    /**
+     * Get the hostname part only of a string
+     *
+     * @param str
+     * @returns {*|string}
+     * @private
+     */
+    _getHostnameFromString: function(str) {
+        var l = document.createElement("a");
+        l.href = str;
+        return l.hostname;
+    },
+
+
+    /**
+     * is the URL on the same host or different?
+     *
+     * @param url
+     * @returns {boolean}
+     * @private
+     */
+    _isSameOriginRequest: function(url) {
+        return (this._getHostnameFromString(url) === window.location.hostname);
+    },
+
 
     /**
      * URI Encode every key => value pair in an array as a query parameter
@@ -25,21 +92,37 @@ var ajax = {
 
 
     /**
-     * Create either an XMLHttpRequest or XDomainRequest object
-     *
-     * @returns {Object}
+     * Create a request object based on the browser support and
+     * wether we're making a same origina or CORS request
+     * @param url
+     * @returns {{}}
      * @private
      */
-    _makeRequest: function () {
+    _createRequest: function(url) {
         var r = {};
-        if (typeof XMLHttpRequest !== 'undefined') {
-            var xhr = new XMLHttpRequest();
-            if('withCredentials' in xhr) {
-                r.xhr = xhr;
+        if(this._isSameOriginRequest(url)) {
+            r.xhr = new XMLHttpRequest();
+        }
+        else {
+            if(typeof XMLHttpRequest !== 'undefined') {
+                var xhr = new XMLHttpRequest();
+                // Modern Browsers
+                if('withCredentials' in xhr) {
+                    r.xhr = xhr;
+                }
+
+                // IE8 && 9
+                else if(typeof XDomainRequest !== "undefined") {
+                    r.xdr = new XDomainRequest();
+                }
+                // No support for CORS
+                else {
+                    console.log("This browser does not support CORS");
+                    throw "CORS not supported";
+                }
             }
-            // IE8 && 9
-            else if(typeof XDomainRequest !== "undefined") {
-                r.xdr = new XDomainRequest();
+            else {
+                throw "XMLHttpRequest undefined";
             }
         }
         return r;
@@ -50,21 +133,24 @@ var ajax = {
      * Send a request via XHR object
      *
      * @param {Object} r
-     * @param {String} url
-     * @param {String} method
-     * @param {Function} callback
-     * @param {String} data
-     * @param {Boolean} async
+     * @param {Object} options
      * @private
      */
-    _sendRequestViaXHR: function(r, url, method, callback, data, async) {
-        r.xhr.open(method, url, async);
+    _sendRequestViaXHR: function(r, options) {
+        r.xhr.open(options.method, options.url, options.async);
         r.xhr.onreadystatechange = function () {
-            if (r.xhr.readyState == 4) {
-                callback(r.xhr.responseText);
+            //Success
+            if (r.xhr.readyState === 4) {
+                if (r.xhr.status === 200) {
+                    typeof options.success === 'function' && options.success(r.xhr.responseText);
+                }
+                else {
+                    typeof options.error === 'function' && options.error(r.xhr.statusText);
+                }
             }
         };
-        if (method == 'POST') {
+
+        if (typeof options.method === 'string' && options.method.toUpperCase() === 'POST') {
             r.xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
         }
         r.xhr.send();
@@ -74,28 +160,24 @@ var ajax = {
      * Send a request via XDR object
      *
      * @param {Object} r
-     * @param {String} url
-     * @param {String} method
-     * @param {Function} callback
-     * @param {String} data
+     * @param {Object} options
      * @private
      */
-    _sendRequestViaXDR: function(r, url, method, callback, data) {
-        r.xdr.open(method, url);
+    _sendRequestViaXDR: function(r, options) {
+        r.xdr.open(options.method, options.url);
         r.xdr.onload = function() {
-            callback(r.xdr.responseText);
+            typeof options.success === 'function' && options.success(r.xdr.responseText);
         };
         r.xdr.onerror = function() {
-            console.log("Request returned an error: ");
-            console.log(r.xdr.responseText);
+            typeof options.error === 'function' && options.error();
         };
         r.xdr.timeout = function() {
-            console.log("Request timed out");
+            console.log("XDR request timed out");
         };
         r.xdr.onprogress = function() {};
 
         setTimeout(function() {
-            r.xdr.send(data);
+            r.xdr.send(options.data);
         }, 0);
     },
 
@@ -103,71 +185,23 @@ var ajax = {
     /**
      * Send a request to the server
      *
-     * @param {String} url
-     * @param {String} method
-     * @param {Function} callback
-     * @param {String} data
-     * @param {Boolean} async
-     * @returns {boolean}
+     * @param {Object} options
      * @private
      */
-    _send: function (url, method, callback, data, async) {
-        async = (typeof async !== 'undefined') ? async : true;
+    _send: function (options) {
+        options.async = (typeof async !== 'undefined') ? options.async : true;
 
-        var r = this._makeRequest();
+        var r = this._createRequest(options.url);
 
         // XML HTTP Requests - normal way
         if(typeof r.xhr !== 'undefined') {
-            this._sendRequestViaXHR(r, url, method, callback, data, async);
+            this._sendRequestViaXHR(r, options);
         }
 
         // IE8 & 9 use XDomainRequest
         else if(typeof r.xdr !== 'undefined') {
-            this._sendRequestViaXDR(r, url, method, callback, data);
+            this._sendRequestViaXDR(r, options);
         }
-
-        // No support for CORS
-        else {
-            console.log("This browser does not support CORS");
-            return false;
-        }
-    },
-
-
-    /**
-     * Make a GET request
-     *
-     * @param {String} url
-     * @param {String} data
-     * @param {Function} callback
-     * @param {Boolean} sync
-     */
-    get: function (url, data, callback, sync) {
-        if(data) {
-            var query = this._encodeURIArray(data);
-            if(url.indexOf('?') < 0) {
-                url = url + '?';
-            }
-            else {
-                url = url + '&';
-            }
-            url = url + query.join('&');
-        }
-        this._send(url, 'GET', callback, null, sync);
-    },
-
-
-    /**
-     * Make a POST request
-     *
-     * @param {String} url
-     * @param {String} data
-     * @param {Function} callback
-     * @param {Boolean} sync
-     */
-    post: function (url, data, callback, sync) {
-        var query = this._encodeURIArray(data);
-        this._send(url, 'POST', callback, query.join('&'), sync);
     }
 };
 

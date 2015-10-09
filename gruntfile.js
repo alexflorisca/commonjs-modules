@@ -11,14 +11,14 @@ module.exports = function(grunt) {
                         debug: true
                     }
                 },
-                src: ['main.js', 'modules/*.js'],
+                src: ['main.js'],
                 dest: 'static/build.js'
             },
 
             prod: {
                 options: {
                     browserifyOptions: {
-                        debug: false,
+                        debug: false
                     }
                 },
                 src: '<%= browserify.dev.src %>',
