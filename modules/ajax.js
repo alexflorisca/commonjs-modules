@@ -8,6 +8,7 @@
  *
  * TODO: Add custom headers
  * TODO: Add JSON as a response data type
+ * TODO: Sort out get function data processing
  */
 
 'use strict';
@@ -20,7 +21,6 @@ var ajax = {
      */
     get: function (options) {
         options.method = 'GET';
-        console.log(options);
 
         if(options.data) {
             var query = this._encodeURIArray(options.data);
@@ -60,6 +60,20 @@ var ajax = {
         var l = document.createElement("a");
         l.href = str;
         return l.hostname;
+    },
+
+
+    /**
+     * Set custom headers
+     *
+     * @param r
+     * @param headers
+     * @private
+     */
+    _setCustomHeaders: function(r, headers) {
+        for(var headerKey in headers){
+            r.setRequestHeader(headerKey, headers[headerKey]);
+        }
     },
 
 
@@ -117,8 +131,7 @@ var ajax = {
                 }
                 // No support for CORS
                 else {
-                    console.log("This browser does not support CORS");
-                    throw "CORS not supported";
+                    throw "This browser does not support CORS";
                 }
             }
             else {
@@ -138,8 +151,8 @@ var ajax = {
      */
     _sendRequestViaXHR: function(r, options) {
         r.xhr.open(options.method, options.url, options.async);
+
         r.xhr.onreadystatechange = function () {
-            //Success
             if (r.xhr.readyState === 4) {
                 if (r.xhr.status === 200) {
                     typeof options.success === 'function' && options.success(r.xhr.responseText);
@@ -150,11 +163,12 @@ var ajax = {
             }
         };
 
-        if (typeof options.method === 'string' && options.method.toUpperCase() === 'POST') {
+        if (options.method.toUpperCase() === 'POST') {
             r.xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
         }
         r.xhr.send();
     },
+
 
     /**
      * Send a request via XDR object
@@ -165,16 +179,18 @@ var ajax = {
      */
     _sendRequestViaXDR: function(r, options) {
         r.xdr.open(options.method, options.url);
+
         r.xdr.onload = function() {
             typeof options.success === 'function' && options.success(r.xdr.responseText);
         };
+
         r.xdr.onerror = function() {
             typeof options.error === 'function' && options.error();
         };
+
         r.xdr.timeout = function() {
-            console.log("XDR request timed out");
+            throw "XDR request timed out";
         };
-        r.xdr.onprogress = function() {};
 
         setTimeout(function() {
             r.xdr.send(options.data);
